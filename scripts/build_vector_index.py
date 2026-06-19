@@ -1,15 +1,3 @@
-"""Script to build a Chroma vector index from the processed complaints CSV.
-
-Usage (from repo root):
-    python -m scripts.build_vector_index --input data/processed/filtered_complaints.csv
-
-This script:
- - loads the filtered CSV
- - builds a stratified sample (default 12k)
- - chunks narratives
- - computes embeddings with sentence-transformers
- - persists a Chroma collection under `vector_store/`
-"""
 from __future__ import annotations
 
 import argparse

@@ -1,9 +1,3 @@
-"""A minimal, dependency-free implementation of
-`RecursiveCharacterTextSplitter` to support the test suite.
-
-This is intentionally simple: it performs character-level chunking with
-an overlap and exposes the same constructor arguments used in tests.
-"""
 from typing import Callable, List, Sequence
 
 
