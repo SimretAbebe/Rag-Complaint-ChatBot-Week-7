@@ -27,11 +27,14 @@ jobs:
           pip install sentence-transformers
           pip install chromadb
           pip install langchain langchain-community
+           pip install groq
 
       - name: Install faiss (optional)
         run: pip install faiss-cpu
         continue-on-error: true
 
       - name: Run tests
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           pytest tests/ -v --tb=short
