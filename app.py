@@ -45,7 +45,13 @@ def ask_question(question: str,
     
   
     if not question or question.strip() == "":
-        return "Please type a question first.", ""
+        return (
+            "Please type a question first.",
+            "",
+            gr.update(interactive=True),
+            gr.update(visible=False),
+            gr.update(value="", visible=False),
+        )
     
     
     filter_value = None if product_filter == "All Products" else product_filter
@@ -60,9 +66,22 @@ def ask_question(question: str,
         )
         
         
+        if not chunks:
+            # no results found — show empty message area
+            return (
+                "",  # answer output empty
+                "",
+                gr.update(interactive=True),
+                gr.update(visible=False),
+                gr.update(value="No relevant complaints found for that query and filter.", visible=True),
+                gr.update(interactive=True),
+                gr.update(interactive=True),
+                gr.update(interactive=True),
+            )
+
         context = format_context(chunks)
-        
-        
+
+
         result = generate(question=question, context=context)
         answer = result['answer']
         
@@ -80,15 +99,61 @@ def ask_question(question: str,
                 f"---\n\n"
             )
         
-        return answer, sources_text
+        # re-enable Ask button and inputs after processing and hide spinner
+        return (
+            answer,
+            sources_text,
+            gr.update(interactive=True),
+            gr.update(visible=False),
+            gr.update(value="", visible=False),
+            gr.update(interactive=True),
+            gr.update(interactive=True),
+            gr.update(interactive=True),
+        )
     
     except Exception as e:
-        return f"An error occurred: {str(e)}", ""
+        return (
+            f"An error occurred: {str(e)}",
+            "",
+            gr.update(interactive=True),
+            gr.update(visible=False),
+            gr.update(value="", visible=False),
+            gr.update(interactive=True),
+            gr.update(interactive=True),
+            gr.update(interactive=True),
+        )
     
 
 
 def clear_all():
-    return "", "All Products", 5, "", ""
+    # reset inputs, hide spinner, and ensure Ask button is enabled
+    return (
+        "",
+        "All Products",
+        5,
+        "",
+        "",
+        gr.update(interactive=True),
+        gr.update(visible=False),
+        gr.update(value="", visible=False),
+        gr.update(interactive=True),
+        gr.update(interactive=True),
+        gr.update(interactive=True),
+    )
+
+
+def set_loading():
+    # show spinner, clear previous outputs, and disable Ask button
+    return (
+        "",
+        "",
+        gr.update(interactive=False),
+        gr.update(visible=True),
+        gr.update(value="", visible=False),
+        gr.update(interactive=False),
+        gr.update(interactive=False),
+        gr.update(interactive=False),
+    )
 
 
 # Building the interface
@@ -127,6 +192,12 @@ with gr.Blocks(
                 info="Narrow results to a specific product"
             )
 
+            # Quick product presets for non-technical users
+            with gr.Row():
+                pc_credit = gr.Button("Credit Card", elem_id="preset-credit")
+                pc_savings = gr.Button("Savings Account", elem_id="preset-savings")
+                pc_transfer = gr.Button("Money Transfer", elem_id="preset-transfer")
+
             num_sources = gr.Slider(
                 minimum=1,
                 maximum=10,
@@ -162,11 +233,20 @@ with gr.Blocks(
                 value="*Your answer will appear here.*"
             )
 
+            # spinner / loading indicator (hidden by default)
+            spinner_html = gr.HTML(
+                "<div style='display:flex;align-items:center;gap:8px'><div style=\"border:4px solid #f3f3f3;border-top:4px solid #444;border-radius:50%;width:18px;height:18px;animation:spin 1s linear infinite;\"></div><div style='color:#999'>Retrieving...</div></div>",
+                visible=False,
+            )
+
             gr.Markdown("### Sources Used\n\n")
             sources_output = gr.Markdown(
                 label="Sources",
                 value="*Sources will appear here.*"
             )
+            
+            # improved empty result message area (hidden when not used)
+            empty_message = gr.Markdown(value="", visible=False)
 
     # Example questions
     gr.Markdown("### Example Questions")
@@ -183,24 +263,41 @@ with gr.Blocks(
     )
 
     # Connect buttons to functions
+    # show immediate loading text (disables button), then run the heavy retrieval/generation
+    ask_btn.click(
+        fn=set_loading,
+        inputs=[],
+        outputs=[answer_output, sources_output, ask_btn, spinner_html, empty_message, product_filter, num_sources, question_input]
+    )
     ask_btn.click(
         fn=ask_question,
         inputs=[question_input, product_filter, num_sources],
-        outputs=[answer_output, sources_output]
+        outputs=[answer_output, sources_output, ask_btn, spinner_html, empty_message, product_filter, num_sources, question_input]
     )
+
+    # preset buttons set the product filter value
+    pc_credit.click(lambda: "Credit Card", inputs=[], outputs=[product_filter])
+    pc_savings.click(lambda: "Savings Account", inputs=[], outputs=[product_filter])
+    pc_transfer.click(lambda: "Money Transfer", inputs=[], outputs=[product_filter])
 
     clear_btn.click(
         fn=clear_all,
         inputs=[],
         outputs=[question_input, product_filter, num_sources,
-                 answer_output, sources_output]
+                 answer_output, sources_output, ask_btn, spinner_html, empty_message, product_filter, num_sources, question_input]
     )
 
    
+    # submit should mirror the button behaviour (loading then ask)
+    question_input.submit(
+        fn=set_loading,
+        inputs=[],
+        outputs=[answer_output, sources_output, ask_btn, spinner_html, empty_message, product_filter, num_sources, question_input]
+    )
     question_input.submit(
         fn=ask_question,
         inputs=[question_input, product_filter, num_sources],
-        outputs=[answer_output, sources_output]
+        outputs=[answer_output, sources_output, ask_btn, spinner_html, empty_message, product_filter, num_sources, question_input]
     )
     
     # Footer
