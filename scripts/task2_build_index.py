@@ -21,7 +21,14 @@ def stratified_sample(df: pd.DataFrame, strat_col: str, sample_frac: float = Non
         return train.reset_index(drop=True)
 
     if n_per_group is not None:
-        sampled = df.groupby(strat_col, group_keys=False).apply(lambda g: g.sample(n=min(len(g), n_per_group), random_state=seed))
+        # sample up to `n_per_group` rows per group and concat to ensure a DataFrame
+        groups = []
+        for _, g in df.groupby(strat_col):
+            groups.append(g.sample(n=min(len(g), n_per_group), random_state=seed))
+        if groups:
+            sampled = pd.concat(groups, axis=0, ignore_index=True)
+        else:
+            sampled = df.iloc[0:0].copy()
         return sampled.reset_index(drop=True)
 
     return df.reset_index(drop=True)
