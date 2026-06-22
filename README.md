@@ -52,7 +52,6 @@ Groq LLM (Llama 3) generates a grounded answer
 
 Answer + sources displayed in Gradio UI
 
-```
 ---
 
 ## Products Covered
@@ -111,7 +110,7 @@ rag-complaint-chatbot/
 
 └── unittests.yml # CI/CD pipeline
 
-````
+```
 ---
 
 ## Tech Stack
@@ -132,10 +131,6 @@ rag-complaint-chatbot/
 
 ```bash
 git clone https://github.com/SimretAbebe/Rag-Complaint-ChatBot-Week-7.git
-cd Rag-Complaint-ChatBot-Week-7
-python -m venv venv
-venv\Scripts\activate        # Windows
-pip install -r requirements.txt
 ````
 
 Create a `.env` file at the project root:
@@ -153,14 +148,5 @@ python app.py
 ```
 
 Open your browser at `http://localhost:7860`
-
----
-
-## Project Progress
-
-- [x] Task 1 — EDA and Data Preprocessing
-- [x] Task 2 — Text Chunking and Embedding Pipeline
-- [x] Task 3 — RAG Core Logic and Evaluation
-- [x] Task 4 — Gradio UI
 
 ---
